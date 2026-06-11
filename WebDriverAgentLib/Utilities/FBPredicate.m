@@ -14,9 +14,12 @@
 + (NSPredicate *)predicateWithFormat:(NSString *)predicateFormat,  ...
 {
   va_list args;
+  NSPredicate *predicate;
+  NSPredicate *hackPredicate;
   va_start(args, predicateFormat);
-  NSPredicate *predicate = [NSPredicate predicateWithFormat:predicateFormat arguments:args];
-  NSPredicate *hackPredicate = [NSPredicate predicateWithFormat:self.forceResolvePredicateString];
+  predicate = [NSPredicate predicateWithFormat:predicateFormat arguments:args];
+  va_end(args);
+  hackPredicate = [NSPredicate predicateWithFormat:self.forceResolvePredicateString];
   return [NSCompoundPredicate andPredicateWithSubpredicates:@[predicate, hackPredicate]];
 }
 

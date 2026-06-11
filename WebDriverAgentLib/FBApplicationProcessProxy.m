@@ -22,9 +22,10 @@
 
 + (instancetype)observerProxy:(NSObject *)observer targetedProxy:(NSProxy *)targetedProxy keyPath:(NSString *)keyPath
 {
+  __FBObserverProxy *proxy;
   NSParameterAssert(observer);
   NSParameterAssert(targetedProxy);
-  __FBObserverProxy *proxy = [__FBObserverProxy new];
+  proxy = [__FBObserverProxy new];
   proxy.observer = observer;
   proxy.targetedProxy = targetedProxy;
   proxy.keyPath = keyPath;
@@ -47,9 +48,10 @@
 
 + (instancetype)proxyWithApplicationProcess:(XCUIApplicationProcess *)applicationProcess
 {
+  FBApplicationProcessProxy *proxy;
   NSParameterAssert(applicationProcess);
   NSParameterAssert([[applicationProcess class] isEqual:XCUIApplicationProcess.class]);
-  FBApplicationProcessProxy *proxy = [[self.class alloc] init];
+  proxy = [[self.class alloc] init];
   proxy.applicationProcess = applicationProcess;
   proxy.observerProxies = [NSMutableArray array];
   return proxy;

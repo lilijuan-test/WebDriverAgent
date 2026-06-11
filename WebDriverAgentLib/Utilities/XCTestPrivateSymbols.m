@@ -21,16 +21,18 @@ id<XCDebugLogDelegate> (*XCDebugLogger)(void);
 
 __attribute__((constructor)) void FBLoadXCTestSymbols(void)
 {
+  NSArray<NSNumber *> *(*XCAXAccessibilityAttributesForStringAttributes)(NSArray<NSString *> *list);
+  NSArray<NSNumber *> *accessibilityAttributes;
   NSString *XC_kAXXCAttributeIsVisible = *(NSString*__autoreleasing*)FBRetrieveXCTestSymbol("XC_kAXXCAttributeIsVisible");
   NSString *XC_kAXXCAttributeIsElement = *(NSString*__autoreleasing*)FBRetrieveXCTestSymbol("XC_kAXXCAttributeIsElement");
 
-  NSArray *(*XCAXAccessibilityAttributesForStringAttributes)(NSArray *list) =
-  (NSArray<NSNumber *> *(*)(NSArray *))FBRetrieveXCTestSymbol("XCAXAccessibilityAttributesForStringAttributes");
+  XCAXAccessibilityAttributesForStringAttributes =
+  (NSArray<NSNumber *> *(*)(NSArray<NSString *> *))FBRetrieveXCTestSymbol("XCAXAccessibilityAttributesForStringAttributes");
 
   XCSetDebugLogger = (void (*)(id <XCDebugLogDelegate>))FBRetrieveXCTestSymbol("XCSetDebugLogger");
   XCDebugLogger = (id<XCDebugLogDelegate>(*)(void))FBRetrieveXCTestSymbol("XCDebugLogger");
 
-  NSArray<NSNumber *> *accessibilityAttributes = XCAXAccessibilityAttributesForStringAttributes(@[XC_kAXXCAttributeIsVisible, XC_kAXXCAttributeIsElement]);
+  accessibilityAttributes = XCAXAccessibilityAttributesForStringAttributes(@[XC_kAXXCAttributeIsVisible, XC_kAXXCAttributeIsElement]);
   FB_XCAXAIsVisibleAttribute = accessibilityAttributes[0];
   FB_XCAXAIsElementAttribute = accessibilityAttributes[1];
 
@@ -41,9 +43,11 @@ __attribute__((constructor)) void FBLoadXCTestSymbols(void)
 void *FBRetrieveXCTestSymbol(const char *name)
 {
   Class XCTestClass = objc_lookUpClass("XCTestCase");
+  NSString *XCTestBinary;
+  const char *binaryPath;
   NSCAssert(XCTestClass != nil, @"XCTest should be already linked", XCTestClass);
-  NSString *XCTestBinary = [NSBundle bundleForClass:XCTestClass].executablePath;
-  const char *binaryPath = XCTestBinary.UTF8String;
+  XCTestBinary = [NSBundle bundleForClass:XCTestClass].executablePath;
+  binaryPath = XCTestBinary.UTF8String;
   NSCAssert(binaryPath != nil, @"XCTest binary path should not be nil", binaryPath);
   return FBRetrieveSymbolFromBinary(binaryPath, name);
 }

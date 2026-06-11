@@ -37,9 +37,11 @@ static NSString *const FBRouteSessionPrefix = @"/session/:sessionID";
 
 - (void)mountRequest:(FBRouteRequest *)request intoResponse:(RouteResponse *)response
 {
+  id<FBResponsePayload> (*requestMsgSend)(id, SEL, FBRouteRequest *);
+  id<FBResponsePayload> payload;
   [self decorateRequest:request];
-  id<FBResponsePayload> (*requestMsgSend)(id, SEL, FBRouteRequest *) = ((id<FBResponsePayload>(*)(id, SEL, FBRouteRequest *))objc_msgSend);
-  id<FBResponsePayload> payload = requestMsgSend(self.target, self.action, request);
+  requestMsgSend = (id<FBResponsePayload> (*)(id, SEL, FBRouteRequest *))(void *)objc_msgSend;
+  payload = requestMsgSend(self.target, self.action, request);
   [payload dispatchWithResponse:response];
 }
 
@@ -55,8 +57,9 @@ static NSString *const FBRouteSessionPrefix = @"/session/:sessionID";
 
 - (void)mountRequest:(FBRouteRequest *)request intoResponse:(RouteResponse *)response
 {
+  id<FBResponsePayload> payload;
   [self decorateRequest:request];
-  id<FBResponsePayload> payload = self.handler(request);
+  payload = self.handler(request);
   [payload dispatchWithResponse:response];
 }
 
@@ -135,15 +138,17 @@ static NSString *const FBRouteSessionPrefix = @"/session/:sessionID";
 
 - (void)decorateRequest:(FBRouteRequest *)request
 {
+  NSString *sessionID;
+  FBSession *session;
   if (!self.requiresSession) {
     return;
   }
-  NSString *sessionID = request.parameters[@"sessionID"];
+  sessionID = request.parameters[@"sessionID"];
   if (!sessionID) {
     [self raiseNoSessionException];
     return;
   }
-  FBSession *session = [FBSession sessionWithIdentifier:sessionID];
+  session = [FBSession sessionWithIdentifier:sessionID];
   if (!session) {
     [self raiseNoSessionException];
     return;
